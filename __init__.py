@@ -11,111 +11,73 @@ bl_info = {
 }
 
 import bpy
+import importlib.util
+from . moduls.operators.registrator import OPERATORS_FOR_REGISTRATION
+from . moduls.globalParametrs import ADDONS_FOLDER, DEBUG
+from . moduls.utils.internal import CLMBInternal
+from . moduls.utils.log import Log
+from . moduls.utils.fs import fs
 
-CLASSES = []
+CLASSES = OPERATORS_FOR_REGISTRATION
+ADDONS = []
 
 #Settings Conteiner========================================================================
-
-class CMB_SceneConteiner(bpy.types.PropertyGroup):
-    #addonPreference: bpy.props.IntProperty(options={'HIDDEN'})
-    addon_preference: bpy.props.IntProperty()
-
-CLASSES.append(CMB_SceneConteiner)
+class CLMBSceneConteiner(bpy.types.PropertyGroup):
+    addon_preference: bpy.props.IntProperty(options={'HIDDEN'})
+CLASSES.append(CLMBSceneConteiner)
 #==========================================================================================
 
+# Loading addon from curent addons folder ==================================================
+for file in CLMBInternal.scanAddonsFolder():
+    fileFull = ADDONS_FOLDER + file
+    file = file[:-3]
 
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    spec = importlib.util.spec_from_file_location(file, fileFull)
+    if not spec:
+        continue
+    foo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(foo)
+    if CLMBInternal.isCLUMBAddon(foo):
+        ADDONS.append(foo.main)
+#==========================================================================================
 
-class Addon1:
-    class testCl1(bpy.types.Operator):
-        bl_idname = "object.test_cl1"
-        bl_label = bl_idname
+# Register Data from addons ===============================================================
+for addon in ADDONS:
+    CLASSES += addon.CLMBClassesForRegistration
+#==========================================================================================
 
-        def execute(self, context):
-            self.report({'INFO'}, self.bl_idname)
-            return {'FINISHED'}
-    
-    def draw(layout):
-        layout.operator("object.test_cl1")
-
-    classes = [testCl1]
-
-class Addon2:
-    class testCl2(bpy.types.Operator):
-        bl_idname = "object.test_cl2"
-        bl_label = bl_idname
-
-        def execute(self, context):
-            self.report({'INFO'}, self.bl_idname)
-            return {'FINISHED'}
-    
-    def draw(layout):
-        layout.operator("object.test_cl2")
-
-    classes = [testCl2]
-
-class Addon3:
-    class testCl3(bpy.types.Operator):
-        bl_idname = "object.test_cl3"
-        bl_label = bl_idname
-
-        def execute(self, context):
-            self.report({'INFO'}, self.bl_idname)
-            return {'FINISHED'}
-    
-    def draw(layout):
-        layout.operator("object.test_cl3")
-
-    classes = [testCl3]
-
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-classesForDraw = [Addon1,Addon2,Addon3]
-
-
-for addon in classesForDraw:
-    CLASSES += addon.classes
-
-class CMB_ChengeCurentAddonLayout(bpy.types.Operator):
-    bl_idname = ".cmb_swith_curent_addon"
-    bl_label = bl_idname
-    bl_option = {"INTERNAL"}
-
-    number: bpy.props.IntProperty()
-
-    def execute(self, context):
-        print(self.number)
-        context.scene.CMB_SceneConteiner.addon_preference = self.number
-        return {'FINISHED'}
-
-class CMB_AddonPreferences(bpy.types.AddonPreferences):
+# Addon Preferences Drawer ================================================================
+class CLMBAddonPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
     def draw(self, context):
         layout = self.layout
         layout.label(text="Addons in CLUMBA:")
-
         lr = layout.row(align = True)
-        
-        for i,addon in enumerate(classesForDraw):
-            op = lr.operator(".cmb_swith_curent_addon", text = addon.__name__, depress = (i == context.scene.CMB_SceneConteiner.addon_preference) )
+
+        # Draw Addons Button List
+        for i,addon in enumerate(ADDONS):
+            op = lr.operator(".cmb_swith_curent_addon", text = addon.name, depress = (i == context.scene.CLMBSceneConteiner.addon_preference) )
             op.number = i
         
-        classesForDraw[context.scene.CMB_SceneConteiner.addon_preference].draw(layout)
+        # Draw Addon Preferences
+        ## Addon Part
+        if len(ADDONS) != 0:
+            ADDONS[context.scene.CLMBSceneConteiner.addon_preference].addonPreferencesDraw(layout)
 
+CLASSES.append(CLMBAddonPreferences)
+#==========================================================================================
 
-CLASSES += [
-    CMB_AddonPreferences,
-    CMB_ChengeCurentAddonLayout,
-]
-print(CLASSES)
+if DEBUG:
+    Log.print(__package__,f'This classes requred for registration:\n{CLASSES}')
+    Log.print(__package__,f'Addons has been registered:\n{ADDONS}')
+
 def register():
     for clss in CLASSES:
         bpy.utils.register_class(clss)
-    bpy.types.Scene.CMB_SceneConteiner = bpy.props.PointerProperty(type=CMB_SceneConteiner)
+    bpy.types.Scene.CLMBSceneConteiner = bpy.props.PointerProperty(type=CLMBSceneConteiner)
+
 def unregister():
     for clss in CLASSES:
         bpy.utils.unregister_class(clss)
-    del bpy.types.Scene.CMB_SceneConteiner
+    del bpy.types.Scene.CLMBSceneConteiner
 
