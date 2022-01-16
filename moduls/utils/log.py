@@ -1,7 +1,10 @@
+from os import error
 import bpy
+from CLUMBA.moduls.globalParametrs import DEBUG
 
 class Log():
-    def printStr(cls, text):
+    @staticmethod
+    def __printStr(cls, text):
         if type(cls) == str:
             return f'[{cls}]: {text}'
         elif hasattr(cls, "bl_idname"):
@@ -15,10 +18,9 @@ class Log():
         else:
             return f'[{cls.__module__}]: {text}'
 
+    @staticmethod
     def print(cls, text, showInBlender = False):
-        text = Log.printStr(cls, text)
+        if not DEBUG:
+            return
+        text = Log.__printStr(cls, text)
         print(text)
-        if showInBlender:
-            pass
-            #operator = bpy.ops.info.log_to_info('INVOKE_DEFAULT')
-            #operator.text = text
