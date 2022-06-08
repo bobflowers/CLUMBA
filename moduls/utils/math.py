@@ -22,13 +22,13 @@ class Math:
         return Matrix( [ v1, v2, vCrp ] ).transposed()
                 
     @staticmethod
-    def vectorToUnit( vct ):
+    def vectorToUnit( vct: Vector ):
         '''Method retern vector in scale 1'''
         vct = vct.normalized()
         return vct * Vector( ( 1.0 / vct.magnitude, 1.0 / vct.magnitude, 1.0 / vct.magnitude ) )
 
     @staticmethod
-    def getRoationMatrix( matrix ):
+    def getRoationMatrix( matrix: Matrix ):
         '''This method split position and rotatin from an import matrix'''
         matrix = matrix.to_3x3()
 

@@ -15,7 +15,7 @@ import bpy
 import importlib.util
 from os import path
 from . moduls.operators.registrator import OPERATORS_FOR_REGISTRATION
-from . moduls.globalParametrs import ADDONS_FOLDER, DEBUG
+from . moduls.globalParametrs import CLMBGlobalParams
 from . moduls.utils.internal import CLMBInternal
 from . moduls.utils.log import Log
 from . moduls.utils.fs import fs
@@ -30,7 +30,7 @@ rightHandMenusNamesList = []
 
 # Loading addon from curent addons folder ==================================================
 for file in CLMBInternal.scanAddonsFolder():
-    fileFull = ADDONS_FOLDER + file
+    fileFull = CLMBGlobalParams.ADDONS_FOLDER + file
     file = file[:-3]
 
     spec = importlib.util.spec_from_file_location(file, fileFull)
@@ -38,11 +38,10 @@ for file in CLMBInternal.scanAddonsFolder():
         continue
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
-    if CLMBInternal.isCLUMBAddon(foo.main):
-        foo.main.path =  path.split(fileFull)[0]
-        ADDONS.append(foo.main)
+    if CLMBInternal.isCLUMBAddon(foo.ADDON):
+        foo.ADDON.path =  path.split(fileFull)[0]
+        ADDONS.append(foo.ADDON)
 #==========================================================================================
-#ATTRIBUTES.append( CLMBAttribute( bpy.types, "Scene", "KEK", bpy.props.BoolProperty(name="lol", default = True) ) )
 
 # Register Data from addons ===============================================================
 for addon in ADDONS:
@@ -92,7 +91,7 @@ CLASSES.append(CLMBAddonPreferences)
 #==========================================================================================
 
 # Addon RightHand menu UI =================================================================
-class CLMBRightHandUI(bpy.types.Panel):
+class PANEL_PT_CLMBRightHandUI(bpy.types.Panel):
     bl_space_type   = 'VIEW_3D'
     bl_region_type  = 'UI'
     bl_category     = 'CLUMBA'
@@ -115,16 +114,31 @@ class CLMBRightHandUI(bpy.types.Panel):
                 if addon.name == context.scene.CLMBSceneConteiner.settings.addon_right_hand_select:
                     addon.CLMBARightHandUI(layout)
 
-CLASSES.append(CLMBRightHandUI)
+CLASSES.append(PANEL_PT_CLMBRightHandUI)
 #==========================================================================================
 
-if DEBUG:
-    Log.print(__package__,f'This classes requred for registration:\n{CLASSES}')
-    Log.print(__package__,f'Addons has been registered:\n{ADDONS}')
+if CLMBGlobalParams.DEBUG:
+    print(f'\n{"="*50} DEBUG {"="*50}')
+    Log.print(__package__,f'Addons requred for registered:')
+    for i in ADDONS:
+        print(f"\t• {i}")
+
+    Log.print(__package__,f'This classes requred for registration:')
+    for i in CLASSES:
+        print(f"\t• {i}")
+
+    Log.print(__package__,f'Attributes requred for registered:')
+    for i in ATTRIBUTES:
+        print(f"\t• {i}")
+        
+    Log.print(__package__,f'Keys requred for registeration:')
+    for i in Key.KEY_STORAGE:
+        print(f"\t• {i}")
+    
+    print(f'{"="*107}\n')
 
 
 def register():
-    print(f"Key.KEY_STORAGE: {Key.KEY_STORAGE}")
     
     for key in Key.KEY_STORAGE.values():
         key.registrate()
@@ -132,22 +146,17 @@ def register():
     for clss in CLASSES:
         bpy.utils.register_class(clss)
     bpy.types.Scene.CLMBSceneConteiner = bpy.props.PointerProperty(type=CLMBSceneConteiner)
-    
     for atr in ATTRIBUTES:
         atr.registrate()
 
 
 def unregister():
+    
+    Key.globalUnregistrate()
+
     for clss in CLASSES:
         bpy.utils.unregister_class(clss)
     for atr in ATTRIBUTES:
         atr.unRegistrate()
 
-    Key.globalUnregistrate()
-
     del bpy.types.Scene.CLMBSceneConteiner
-
-
-
-
-

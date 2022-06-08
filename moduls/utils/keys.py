@@ -2,14 +2,14 @@ import bpy
 import rna_keymap_ui
 
 from .log import Log
-from ..globalParametrs import DEBUG
+from ..globalParametrs import CLMBGlobalParams
 
 
 class Key:
     KEY_STORAGE = {}
     __doc__ = 'Blender Reference: https://docs.blender.org/api/current/bpy.types.KeyMapItem.html'
 
-    def __init__(self, name, propertyName, key, keyMap = "Window", action = 1, shift = False, ctrl = False, alt = False):
+    def __init__(self, operator, key, keyMap = "Window", action = 1, shift = False, ctrl = False, alt = False):
         ''' Blender Reference: https://docs.blender.org/api/current/bpy.types.KeyMapItem.html
             Action [ 0 - ANY, 1 - PRESS, 2 - RELEASE, 3 - CLICK, 4 - DOUBLE_CLICK, 5 - CLICK_DRAG, 6 - NORTH, 7 - NORTH_EAST, 8 - EAST, 9 - SOUTH_EAST, 10 - SOUTH, 11 - SOUTH_WEST, 12 - WEST, 13 - NORTH_WEST, 14 - NOTHING]'''
             
@@ -17,9 +17,12 @@ class Key:
                                 'EAST', 'SOUTH_EAST', 'SOUTH', 'SOUTH_WEST', 'WEST', 'NORTH_WEST', 'NOTHING' ]
         self.__guard = True
         
-        self.name = name
+        self.propertyName = operator.bl_idname
+        self.name = operator.bl_idname
+        if  hasattr(operator,"bl_label"):
+            self.name = operator.bl_label
+            
         self.keyMap = keyMap
-        self.propertyName = propertyName
         self.value = None
         self.shift = shift
         self.ctrl  = ctrl
@@ -30,10 +33,10 @@ class Key:
         if action >= 0 and action <= len(self.__actionStorage):
             self.value = self.__actionStorage[action]
         else:
-            Log.print(self, f'Key: {action} is not detected. PLease make shure than index from {self.__actionStorage}')
+            Log.print(self, f'Key: {action} is not detected. PLease make shure than index from {self.__actionStorage}',state=2)
             self.__guard = False
 
-        self.KEY_STORAGE[name] = self
+        self.KEY_STORAGE[self.name] = self
 
     def __repr__(self):
        return f'{self.name}'
@@ -42,12 +45,21 @@ class Key:
         '''Method implement an key kontroller UI into an addon interface'''
         wm = bpy.context.window_manager
         kc = wm.keyconfigs.user
+        drawed = 0
         for km in kc.keymaps:
             for kmi in km.keymap_items:
-                if kmi != self.name:
+                if kmi.name != self.name:
                     continue
+                drawed +=1
                 layout.context_pointer_set("keymap", km)
                 rna_keymap_ui.draw_kmi([], kc, km, kmi, layout, 0)
+
+        if not self.__guard or not drawed:
+            BL = layout.box()
+            BLR = BL.row(align = True)
+            BLR.label(text="", icon = "ERROR")
+            BLR.label(text="Keys setup can be drawing!")
+            return
     
     def registrate(self):
         self.KEY_STORAGE[self.name] = self
@@ -67,29 +79,21 @@ class Key:
             ctrl   = self.ctrl,
             shift  = self.shift
             )
-        #kmi.properties.name = self.propertyName
         kmi.active = True
 
-        if DEBUG:
-            Log.print(self, f"{self.name} have been regiustrated! ")
-
         if not self.__guard:
-            Log.print(self, f"Key: {self.name} haven't registrate!")
+            Log.print(self, f"Key: {self.name} haven't registrate!", state=2)
 
     def unregistrate(self):
         wm = bpy.context.window_manager
         kc = wm.keyconfigs.user
         if self.keyMap not in kc.keymaps:
             return
-
-        print(kc.keymaps[self.keyMap].keymap_items)
-        km = kc.keymaps[self.keyMap]
-        for kmi in km.keymap_items:
-            #print(f'kmi.name: {kmi.properties.name} self.propertyName: {self.propertyName}')
-            if kmi.name != self.name:
-                continue
-            print(kmi.name)
-            km.keymap_items.remove(kmi)
+        for km in kc.keymaps:
+            for kmi in km.keymap_items:
+                if kmi.name != self.name:
+                    continue
+                km.keymap_items.remove(kmi)
         
     @classmethod
     def globalUnregistrate(self):
@@ -110,5 +114,3 @@ class Key:
             if keyName not in km:
                 continue
             km[mapArea].active = state
-
-        

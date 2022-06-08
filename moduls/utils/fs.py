@@ -1,9 +1,9 @@
 import os
-import re
 from .log import *
 import json
 
 class fs:
+    @staticmethod
     def getFileList(path, extension):
         if not os.path.isdir(path):
             print(CMBPrintStr("fs.getFileList", "Path not Exist!"))
@@ -13,6 +13,14 @@ class fs:
             if file.endswith(extension):
                 data.append(file)
         return data
+
+    @staticmethod
+    def jsonDump(filePath):
+        if not filePath.endswith(".json"):
+            return
+        with open(filePath, "r", encoding='utf-8') as f:
+            jsonLoad = json.load(f)
+        return jsonLoad
 
 class LineData:
     def __init__(self,file):
@@ -31,14 +39,6 @@ class LineData:
         with open(self.filePath, "w", encoding='utf-8') as f:
             for line in self.lineData: 
                 f.write(line + "\n")
-
-    def jsonDump(self):
-        if not self.filePath.endswith(".json"):
-            return
-        with open(self.filePath, "r", encoding='utf-8') as f:
-            jsonLoad = json.load(f)
-        return jsonLoad
-
 
     def clear(self):
         self.lineData = []

@@ -1,7 +1,7 @@
 import os
 from .fs import *
 from .log import Log
-from ..globalParametrs import CLUMBA_VERSION, ADDONS_FOLDER
+from ..globalParametrs import CLMBGlobalParams
 from abc import ABC, abstractmethod 
 
 class CLMBAddon:
@@ -20,15 +20,16 @@ class CLMBAddon:
 
     def checkClumbaVersion(self):
         '''Check CLUMBA version'''
-        CLMBCurent = CLUMBA_VERSION.split(".")
+        CLMBCurent = CLMBGlobalParams.CLUMBA_VERSION.split(".")
         versionSplit = self.version.split(".")
         for i in range(len(versionSplit)):
             if int(versionSplit[i]) > int(CLMBCurent[i]):
-                Log.print("Version Control (checkClumbaVersion)", f'Addon require new version of CLUMBA. Curent {CLUMBA_VERSION} Addon {version} Please Update CLUMBA')
+                Log.print("Version Control (checkClumbaVersion)", f'Addon require new version of CLUMBA. Curent {CLMBGlobalParams.CLUMBA_VERSION} Addon {version} Please Update CLUMBA')
                 return False
         self.disable = True
 
     def appendClass(self, classes):
+        '''Method for applying classes to queue for registration. Method expect method ore list of methods'''
         if type(classes) is list:
             self.__CLMBClassesForRegistration += classes
         else:
@@ -64,25 +65,23 @@ class CLMBAttribute:
 
         self.badQueryGuard = True
 
-        #self.tryInitBaseOvject( obj )
-
-    def __del__(self):
-        Log.print("CLMBAttribute", f"Object {self.obj}.{self.name} hasn't registred and destroyed!" )
+        #self.tryInitBaseObject( obj )
 
     def __repr__(self):
        return f'{self.obj}.{self.name}'
 
-    def tryInitBaseOvject( self, baseObject):
+    def tryInitBaseObject( self, baseObject):
         try: 
+            #print(f"Name: {self.root} Type: {type(baseObject)}")
             self.obj = getattr( self.root, baseObject)
             if '_PropertyDeferred' in str(type(self.obj)):
                 self.badQueryGuard = False
         except BaseException as e:
-            Log.print("CLMBAttribute",e) 
+            Log.print("CLMBAttribute",e,state=3) 
             self.badQueryGuard = False
 
     def registrate(self):
-        self.tryInitBaseOvject( self.obj )
+        self.tryInitBaseObject( self.obj )
         if self.badQueryGuard:
             setattr( self.obj, self.name, self.prop )
             return True
@@ -97,7 +96,7 @@ class CLMBAttribute:
 
 class CLMBInternal:
     '''Internal methods for CLUMBA'''
-
+    @staticmethod
     def isCLUMBAddon(addon):
         '''Validate CLUMBA addon'''
         from CLUMBA.moduls.utils.internal import CLMBAddon
@@ -109,6 +108,7 @@ class CLMBInternal:
             return False
         return True
 
+    @staticmethod
     def firstFileCheck(file):
         '''This method check #CLUMBA in the first line'''
         with open(file, "r") as f:
@@ -117,15 +117,16 @@ class CLMBInternal:
                 return True
         return False
 
+    @staticmethod
     def scanAddonsFolder():
         '''This method return py files with CLUMBA in first line'''
         def recursive(path = "", lvl = 0, data = None):
             if data == None:
                 data = []
-            for i in os.listdir(ADDONS_FOLDER + path):
-                if os.path.isdir(ADDONS_FOLDER + path + i) and lvl < 1:
+            for i in os.listdir(CLMBGlobalParams.ADDONS_FOLDER + path):
+                if os.path.isdir(CLMBGlobalParams.ADDONS_FOLDER + path + i) and lvl < 1:
                     recursive(f'{path}{i}/',lvl + 1, data)
-                if i.endswith(".py") and CLMBInternal.firstFileCheck(f'{ADDONS_FOLDER}{path}/{i}'):
+                if i.endswith(".py") and CLMBInternal.firstFileCheck(f'{CLMBGlobalParams.ADDONS_FOLDER}{path}/{i}'):
                     data.append(path+i)
             return data
 
