@@ -97,7 +97,8 @@ class Key:
         
     @classmethod
     def globalUnregistrate(self):
-        Log.print(self, 'Global Keys Data - unregisterate initiated!')
+        if CLMBGlobalParams.DEBUG:
+            Log.print(self, 'Global Keys Data - unregisterate initiated!',state=0)
         for key in self.KEY_STORAGE.values():
             key.unregistrate()
 

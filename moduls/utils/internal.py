@@ -34,17 +34,21 @@ class CLMBAddon:
             self.__CLMBClassesForRegistration += classes
         else:
             self.__CLMBClassesForRegistration.append(classes)
-    
-    def getClasses(self):
-        return self.__CLMBClassesForRegistration
-    
+
     def appendAtributes(self, attributes):
         if type(attributes) is list:
             self.__CLMBAttributeForRegistration += attributes
         else:
             self.__CLMBAttributeForRegistration.append(attributes)
     
+    def getClasses(self):
+        if self.disable:
+            return []
+        return self.__CLMBClassesForRegistration
+    
     def getAtributes(self):
+        if self.disable:
+            return []
         return self.__CLMBAttributeForRegistration
 
     def CLMBAPreferencesDraw(self, layout):

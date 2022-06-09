@@ -23,8 +23,6 @@ class Log():
     @staticmethod
     def print(cls, text, showInBlender = False, state=None):
         '''STATE 0 - INFO 1 - WARN  2 - ERROR 3 - CRITICAL'''
-        if not CLMBGlobalParams.DEBUG:
-            return
         if state == 0:
             state = "INFO"
         elif state == 1:

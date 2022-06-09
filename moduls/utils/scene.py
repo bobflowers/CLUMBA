@@ -1,6 +1,11 @@
 import bpy
 
 class Scene:
+    @staticmethod
+    def getSceneByNumber(number=0):
+        if number > len(bpy.data.scenes):
+            return bpy.data.scenes[0]
+        return bpy.data.scenes[number]
     
     @staticmethod
     def getTimeFrameNumeratick(context):
