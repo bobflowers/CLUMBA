@@ -2,19 +2,16 @@ import bpy
 import rna_keymap_ui
 
 from .utils import Log
-from ..globalParametrs import CLMBGlobalParams
+from ..globalParams import CLMBGlobalParams
 
 
 class Key:
     KEY_STORAGE = {}
     __doc__ = 'Blender Reference: https://docs.blender.org/api/current/bpy.types.KeyMapItem.html'
 
-    def __init__(self, operator, key, keyMap = "Window", action = 1, shift = False, ctrl = False, alt = False):
-        ''' Blender Reference: https://docs.blender.org/api/current/bpy.types.KeyMapItem.html
-            Action [ 0 - ANY, 1 - PRESS, 2 - RELEASE, 3 - CLICK, 4 - DOUBLE_CLICK, 5 - CLICK_DRAG, 6 - NORTH, 7 - NORTH_EAST, 8 - EAST, 9 - SOUTH_EAST, 10 - SOUTH, 11 - SOUTH_WEST, 12 - WEST, 13 - NORTH_WEST, 14 - NOTHING]'''
+    def __init__(self, operator, key, keyMap = "Window", action = 'PRESS', shift = False, ctrl = False, alt = False):
+        ''' Blender Reference: https://docs.blender.org/api/current/bpy.types.KeyMapItem.html'''
             
-        self.__actionStorage = ['ANY', 'PRESS', 'RELEASE', 'CLICK', 'DOUBLE_CLICK', 'CLICK_DRAG', 'NORTH', 'NORTH_EAST',
-                                'EAST', 'SOUTH_EAST', 'SOUTH', 'SOUTH_WEST', 'WEST', 'NORTH_WEST', 'NOTHING' ]
         self.__guard = True
         
         self.propertyName = operator.bl_idname
@@ -23,18 +20,11 @@ class Key:
             self.name = operator.bl_label
             
         self.keyMap = keyMap
-        self.value = None
+        self.value = action
         self.shift = shift
         self.ctrl  = ctrl
         self.alt   = alt
         self.key = key.upper()
-
-        #Check then correct state was selected state from 0-14
-        if action >= 0 and action <= len(self.__actionStorage):
-            self.value = self.__actionStorage[action]
-        else:
-            Log.print(self, f'Key: {action} is not detected. PLease make shure than index from {self.__actionStorage}',state=2)
-            self.__guard = False
 
         self.KEY_STORAGE[self.name] = self
 
@@ -82,7 +72,7 @@ class Key:
         kmi.active = True
 
         if not self.__guard:
-            Log.print(self, f"Key: {self.name} haven't registrate!", state=2)
+            Log.print(self, f"Key: {self.name} haven't registrate!", Log.LogType.ERROR)
 
     def unregistrate(self):
         wm = bpy.context.window_manager
@@ -97,8 +87,7 @@ class Key:
         
     @classmethod
     def globalUnregistrate(self):
-        if CLMBGlobalParams.DEBUG:
-            Log.print(self, 'Global Keys Data - unregisterate initiated!',state=0)
+        Log.print(self, 'Global Keys Data - unregisterate initiated!', useGlobalDEBUG=True)
         for key in self.KEY_STORAGE.values():
             key.unregistrate()
 
@@ -115,3 +104,20 @@ class Key:
             if keyName not in km:
                 continue
             km[mapArea].active = state
+
+    class KeyAction:
+        ANY          = 'ANY'
+        PRESS        = 'PRESS'
+        RELEASE      = 'RELEASE'
+        CLICK        = 'CLICK'
+        DOUBLE_CLICK = 'DOUBLE_CLICK'
+        CLICK_DRAG   = 'CLICK_DRAG'
+        NORTH        = 'NORTH'
+        NORTH_EAST   = 'NORTH_EAST'
+        EAST         = 'EAST'
+        SOUTH_EAST   = 'SOUTH_EAST'
+        SOUTH        = 'SOUTH'
+        SOUTH_WEST   = 'SOUTH_WEST'
+        WEST         = 'WEST'
+        NORTH_WEST   = 'NORTH_WEST'
+        NOTHING      = 'NOTHING'

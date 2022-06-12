@@ -5,7 +5,7 @@ import os
 import subprocess
 
 from ..utils.utils     import Log
-from ..globalParametrs import CLMBGlobalParams
+from ..globalParams import CLMBGlobalParams
 
 
 OPERATORS_FS = []

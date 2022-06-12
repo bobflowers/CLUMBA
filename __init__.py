@@ -14,16 +14,17 @@ import bpy
 import importlib.util
 from os import path
 from . moduls.operators.registrator import OPERATORS_FOR_REGISTRATION
-from . moduls.globalParametrs import CLMBGlobalParams
+from . moduls.globalParams import CLMBGlobalParams
 from . moduls.utils.internal import CLMBInternal
-from . moduls.utils.utils import Log
+from . moduls.utils.utils import Log, Utils
 from . moduls.utils.fs import fs
 from . moduls.utils.internal import CLMBAttribute
 from . moduls.utils.keys import Key
 
-CLASSES = OPERATORS_FOR_REGISTRATION
-ADDONS = []
+CLASSES    = OPERATORS_FOR_REGISTRATION
+ADDONS     = []
 ATTRIBUTES = []
+HANDLERS   = []
 
 rightHandMenusNamesList = []
 
@@ -44,8 +45,11 @@ for file in CLMBInternal.scanAddonsFolder():
 
 # Register Data from addons ===============================================================
 for addon in ADDONS:
-    CLASSES += addon.getClasses()
+    if addon.disable:
+        continue
+    CLASSES    += addon.getClasses()
     ATTRIBUTES += addon.getAtributes()
+    HANDLERS   += addon.getHandlers()
     if addon.CLMBARightHandUI.__sizeof__() > 48:
         rightHandMenusNamesList.append((addon.name,addon.name,addon.name))
 #==========================================================================================
@@ -79,9 +83,7 @@ class CLMBAddonPreferences(bpy.types.AddonPreferences):
         if len(ADDONS) != 0:
             addonFolder = ADDONS[context.scene.CLMBSceneConteiner.settings.addon_preference].path
             LR = layout.row(align = True)
-            #LR = LR.split(factor = 0.95)
             LR.label(text=f'Addon path: {addonFolder}')
-            #addonFolder = "/Users/vladimir/Documents/"
             openFolder = LR.operator("clmb.open_folder", text = "", icon = "FILEBROWSER")
             openFolder.folderPath = addonFolder
             ADDONS[context.scene.CLMBSceneConteiner.settings.addon_preference].CLMBAPreferencesDraw(layout)
@@ -117,28 +119,31 @@ CLASSES.append(PANEL_PT_CLMBRightHandUI)
 #==========================================================================================
 
 if CLMBGlobalParams.DEBUG:
-    print(f'\n{"="*50} DEBUG {"="*50}')
-    Log.print(__package__,f'Addons requred for registered:')
+    print(Utils.getSeparatorLine("DEBUG"))
+    Log.print(__package__,f'Addons required for registration:')
     for i in ADDONS:
         print(f"\t• {i}")
 
-    Log.print(__package__,f'This classes requred for registration:')
+    Log.print(__package__,f'This classes required for registration:')
     for i in CLASSES:
         print(f"\t• {i}")
 
-    Log.print(__package__,f'Attributes requred for registered:')
+    Log.print(__package__,f'Attributes required for registration:')
     for i in ATTRIBUTES:
         print(f"\t• {i}")
         
-    Log.print(__package__,f'Keys requred for registeration:')
+    Log.print(__package__,f'Handlers required for registration:')
+    for i in HANDLERS:
+        print(f"\t• {i}")
+
+    Log.print(__package__,f'Keys required for registration:')
     for i in Key.KEY_STORAGE:
         print(f"\t• {i}")
-    
-    print(f'{"="*107}\n')
+
+    print(Utils.getSeparatorLine())
 
 
 def register():
-    
     for key in Key.KEY_STORAGE.values():
         key.registrate()
 
@@ -147,6 +152,8 @@ def register():
     bpy.types.Scene.CLMBSceneConteiner = bpy.props.PointerProperty(type=CLMBSceneConteiner)
     for atr in ATTRIBUTES:
         atr.registrate()
+    for hdlr in HANDLERS:
+        hdlr.registrate()
 
 
 def unregister():
@@ -157,5 +164,7 @@ def unregister():
         bpy.utils.unregister_class(clss)
     for atr in ATTRIBUTES:
         atr.unRegistrate()
+    for hdlr in HANDLERS:
+        hdlr.unRegistrate()
 
     del bpy.types.Scene.CLMBSceneConteiner

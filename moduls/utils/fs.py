@@ -6,7 +6,7 @@ class fs:
     @staticmethod
     def getFileList(path, extension):
         if not os.path.isdir(path):
-            Log.print("fs.getFileList", "Path not Exist!", state=2)
+            Log.print("fs.getFileList", "Path not Exist!", Log.LogType.ERROR)
             return
         data = []
         for file in os.listdir(path):

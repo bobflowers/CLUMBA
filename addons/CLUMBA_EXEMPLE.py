@@ -2,8 +2,8 @@
 
 import bpy
 
-from CLUMBA.moduls.utils.internal  import CLMBAttribute, CLMBAddon
-from CLUMBA.moduls.globalParametrs import CLMBGlobalParams
+from CLUMBA.moduls.utils.internal  import CLMBAttribute, CLMBAddon, CLMBHandler
+from CLUMBA.moduls.globalParams import CLMBGlobalParams
 from CLUMBA.moduls.utils.scene     import Scene
 from CLUMBA.moduls.utils.keys      import Key
 from CLUMBA.moduls.utils.utils     import Log
@@ -24,7 +24,7 @@ class ExempleAddon(bpy.types.Operator):
     bl_label = "TEST"
 
     def execute(self, context):
-        Log.print(self,"Exemple Adon",state=0)
+        Log.print(self,"Exemple Adon",Log.LogType.INFO)
         self.report({'INFO'}, "Exemple Adon")
         return {'FINISHED'}
 
@@ -39,11 +39,27 @@ key = Key(ExempleAddon,"F", ctrl=True) # <-- Create a Key Map
 class ExemplePropertyGroup(bpy.types.PropertyGroup):
     exempleInt:        bpy.props.IntProperty()
     exempleString:     bpy.props.StringProperty(default="Exemple Text")
+    savedCount:        bpy.props.IntProperty()
 
 ADDON.appendClass(ExemplePropertyGroup)
 
 ADDON.appendAtributes( CLMBAttribute( bpy.types, "Scene", "CLMBA_Exemple", bpy.props.BoolProperty(name="Exemple", default = True) ) )
 ADDON.appendAtributes( CLMBAttribute( bpy.types, "Scene", "CLMBA_ExemplePropertyGroup", bpy.props.PointerProperty( type = ExemplePropertyGroup) ) )
+#===============================================================
+
+# Handler Registrator ======================================
+def handlerFunction(scene):
+    scene.CLMBA_ExemplePropertyGroup.exempleInt += 1
+
+def handlerFunction2(scene):  
+    scene = Scene.getSceneByNumber()
+    scene.CLMBA_ExemplePropertyGroup.exempleString = "Exemple Text Was Saved |"
+        
+    scene.CLMBA_ExemplePropertyGroup.savedCount += 1
+    scene.CLMBA_ExemplePropertyGroup.exempleString = f'{scene.CLMBA_ExemplePropertyGroup.exempleString[:24]} {scene.CLMBA_ExemplePropertyGroup.savedCount} | times'
+
+ADDON.appendHandlers( CLMBHandler.Handler( CLMBHandler.HandlersTypes.FrameChanges.frameChangePost, handlerFunction) )
+ADDON.appendHandlers( CLMBHandler.Handler( CLMBHandler.HandlersTypes.Save.savePost, handlerFunction2) )
 #===============================================================
 
 # Addon Settings UI ============================================
