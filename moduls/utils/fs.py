@@ -1,12 +1,12 @@
 import os
-from .log import *
+from .utils import Log
 import json
 
 class fs:
     @staticmethod
     def getFileList(path, extension):
         if not os.path.isdir(path):
-            print(CMBPrintStr("fs.getFileList", "Path not Exist!"))
+            Log.print("fs.getFileList", "Path not Exist!", state=2)
             return
         data = []
         for file in os.listdir(path):

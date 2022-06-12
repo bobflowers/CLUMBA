@@ -10,14 +10,13 @@ bl_info = {
     'category': 'System',
 }
 
-from ctypes import alignment
 import bpy
 import importlib.util
 from os import path
 from . moduls.operators.registrator import OPERATORS_FOR_REGISTRATION
 from . moduls.globalParametrs import CLMBGlobalParams
 from . moduls.utils.internal import CLMBInternal
-from . moduls.utils.log import Log
+from . moduls.utils.utils import Log
 from . moduls.utils.fs import fs
 from . moduls.utils.internal import CLMBAttribute
 from . moduls.utils.keys import Key

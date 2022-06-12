@@ -1,7 +1,7 @@
 import bpy
 import rna_keymap_ui
 
-from .log import Log
+from .utils import Log
 from ..globalParametrs import CLMBGlobalParams
 
 

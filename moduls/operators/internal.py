@@ -1,9 +1,9 @@
 # This Operators for Internal CLUMBA used
 import bpy
-from ..utils.log import Log
+from ..utils.utils import Log
 OPERATORS_INTERNAL = []
 
-class CLMBChengeCurentAddonLayout(bpy.types.Operator):
+class CLMBChangeCurentAddonLayout(bpy.types.Operator):
     bl_idname = "clmb.swith_curent_addon"
     bl_label = bl_idname
     bl_option = {"INTERNAL"}
@@ -14,4 +14,4 @@ class CLMBChengeCurentAddonLayout(bpy.types.Operator):
         context.scene.CLMBSceneConteiner.settings.addon_preference = self.number
         return {'FINISHED'}
 
-OPERATORS_INTERNAL.append(CLMBChengeCurentAddonLayout)
+OPERATORS_INTERNAL.append(CLMBChangeCurentAddonLayout)

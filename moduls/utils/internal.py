@@ -1,8 +1,7 @@
 import os
 from .fs import *
-from .log import Log
+from .utils import Log
 from ..globalParametrs import CLMBGlobalParams
-from abc import ABC, abstractmethod 
 
 class CLMBAddon:
     def __init__(self, name, version, path = ""):

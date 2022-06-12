@@ -6,7 +6,7 @@ from CLUMBA.moduls.utils.internal  import CLMBAttribute, CLMBAddon
 from CLUMBA.moduls.globalParametrs import CLMBGlobalParams
 from CLUMBA.moduls.utils.scene     import Scene
 from CLUMBA.moduls.utils.keys      import Key
-from CLUMBA.moduls.utils.log       import Log
+from CLUMBA.moduls.utils.utils     import Log
 
 
 
@@ -64,9 +64,9 @@ def CLMBAPreferencesDraw(layout):
     BLR = BL.row(align = True)
     BLR.label(text="", icon = "QUESTION")
     BLR.label(text="Attributes")
-    BL.prop(Scene.getSceneByNumber(100), "CLMBA_Exemple")
-    BL.prop(Scene.getSceneByNumber(100).CLMBA_ExemplePropertyGroup, "exempleInt")
-    BL.prop(Scene.getSceneByNumber(100).CLMBA_ExemplePropertyGroup, "exempleString")
+    BL.prop(Scene.getSceneByNumber(), "CLMBA_Exemple")
+    BL.prop(Scene.getSceneByNumber().CLMBA_ExemplePropertyGroup, "exempleInt")
+    BL.prop(Scene.getSceneByNumber().CLMBA_ExemplePropertyGroup, "exempleString")
 
 
 ADDON.CLMBAPreferencesDraw = CLMBAPreferencesDraw # <-- Set method to addon 

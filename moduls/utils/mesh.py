@@ -2,7 +2,7 @@
 import bpy
 import random
 
-from .log import Log
+from .utils import Log
 
 class Mesh:
 

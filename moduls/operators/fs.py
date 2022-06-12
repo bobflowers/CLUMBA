@@ -3,7 +3,8 @@ import re
 import bpy
 import os
 import subprocess
-from ..utils.log import Log
+
+from ..utils.utils     import Log
 from ..globalParametrs import CLMBGlobalParams
 
 
