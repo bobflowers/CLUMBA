@@ -25,6 +25,7 @@ CLASSES    = OPERATORS_FOR_REGISTRATION
 ADDONS     = []
 ATTRIBUTES = []
 HANDLERS   = []
+TIMERS     = []
 
 rightHandMenusNamesList = []
 
@@ -50,6 +51,7 @@ for addon in ADDONS:
     CLASSES    += addon.getClasses()
     ATTRIBUTES += addon.getAtributes()
     HANDLERS   += addon.getHandlers()
+    TIMERS     += addon.getTimers()
     if addon.CLMBARightHandUI.__sizeof__() > 48:
         rightHandMenusNamesList.append((addon.name,addon.name,addon.name))
 #==========================================================================================
@@ -136,6 +138,10 @@ if CLMBGlobalParams.DEBUG:
     for i in HANDLERS:
         print(f"\t• {i}")
 
+    Log.print(__package__,f'Timers required for registration:')
+    for i in TIMERS:
+        print(f"\t• {i}")
+
     Log.print(__package__,f'Keys required for registration:')
     for i in Key.KEY_STORAGE:
         print(f"\t• {i}")
@@ -154,12 +160,16 @@ def register():
         atr.registrate()
     for hdlr in HANDLERS:
         hdlr.registrate()
+    for hdlr in TIMERS:
+        hdlr.registrate()
 
 
 def unregister():
     
     Key.globalUnregistrate()
 
+    for hdlr in TIMERS:
+        hdlr.unRegistrate()
     for clss in CLASSES:
         bpy.utils.unregister_class(clss)
     for atr in ATTRIBUTES:

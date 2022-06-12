@@ -15,6 +15,7 @@ class CLMBAddon:
         self.__CLMBClassesForRegistration   = []
         self.__CLMBAttributeForRegistration = []
         self.__CLMBHandlersForRegistration  = []
+        self.__CLMBTimersForRegistration    = []
 
     def __repr__(self):
         return f'Addon: {self.name}'
@@ -47,9 +48,15 @@ class CLMBAddon:
 
     def appendAtributes(self, attributes):
         self.__appendingRules(attributes, self.__CLMBAttributeForRegistration, CLMBAttribute)
+        if not attributes.isValid():
+            self.disable = True
+            Log.print(self,f"Attribute {attributes} are broken! Addon '{self.name}' will be disabled",state=Log.LogType.CRITICAL)
 
     def appendHandlers(self, handlers):
         self.__appendingRules(handlers, self.__CLMBHandlersForRegistration, CLMBHandler.Handler)
+
+    def appendTimer(self, timer):
+        self.__appendingRules(timer, self.__CLMBTimersForRegistration, CLMBTimer)
     
     def getClasses(self):
         if self.disable:
@@ -66,6 +73,11 @@ class CLMBAddon:
             return []
         return self.__CLMBHandlersForRegistration
 
+    def getTimers(self):
+        if self.disable:
+            return []
+        return self.__CLMBTimersForRegistration
+
     def CLMBAPreferencesDraw(self, layout):
        BL = layout.box()
        BLR = BL.row(align = True)
@@ -75,6 +87,21 @@ class CLMBAddon:
     def CLMBARightHandUI(self, layout):
         pass
 
+class CLMBTimer:
+    def __init__(self, funct, firstInterval=0):
+        self.timer = None
+        self.function = funct
+        self.firstInterval = firstInterval
+    
+    def __repr__(self):
+        return f'Timer Function:{self.function.__name__}'
+
+    def registrate(self):
+        self.timer = bpy.app.timers.register(self.function, first_interval=self.firstInterval)
+        print('sanflna')
+
+    def unRegistrate(self):
+        bpy.app.timers.unregister(self.function)
 
 class CLMBHandler:
     class Handler:
@@ -136,37 +163,41 @@ class CLMBAttribute:
     def __init__(self,root, obj ,name, prop):
         self.root = root
         self.obj = obj
+        self.atr = None
         self.name = name
         self.prop = prop
 
-        self.badQueryGuard = True
+        self.__badQueryGuard = True
 
-        #self.tryInitBaseObject( obj )
+        self.tryInitBaseObject( obj )
 
     def __repr__(self):
        return f'{self.obj}.{self.name}'
 
     def tryInitBaseObject( self, baseObject):
         try: 
-            self.obj = getattr( self.root, baseObject)
+            self.atr = getattr( self.root, baseObject)
             if '_PropertyDeferred' in str(type(self.obj)):
-                self.badQueryGuard = False
+                self.__badQueryGuard = False
         except BaseException as e:
-            Log.print("CLMBAttribute",e,Log.LogType.CRITICAL) 
-            self.badQueryGuard = False
+            Log.print("CLMBAttribute",f'Attribute {self.name} Some Problem were occurred: {e}',Log.LogType.CRITICAL) 
+            self.__badQueryGuard = False 
+
+    def isValid(self):
+        return self.__badQueryGuard
 
     def registrate(self):
-        self.tryInitBaseObject( self.obj )
-        if self.badQueryGuard:
-            setattr( self.obj, self.name, self.prop )
+        if self.__badQueryGuard:
+            setattr( self.atr, self.name, self.prop )
+            self.__badQueryGuard = True
             return True
         else:
-            Log.print("CLMBAttribute", f"Object {self.obj}.{self.name} hasn't registred and destroyed!" )
+            Log.print("CLMBAttribute", f"Object {self.obj}.{self.name} hasn't registred and destroyed!", state=Log.LogType.CRITICAL)
             return False
 
     def unRegistrate(self):
-        if self.badQueryGuard:
-            delattr( self.obj, self.name )
+        if self.__badQueryGuard:
+            delattr( self.atr, self.name )
 
 
 class CLMBInternal:

@@ -2,7 +2,7 @@
 
 import bpy
 
-from CLUMBA.moduls.utils.internal  import CLMBAttribute, CLMBAddon, CLMBHandler
+from CLUMBA.moduls.utils.internal  import CLMBAttribute, CLMBAddon, CLMBHandler, CLMBTimer
 from CLUMBA.moduls.globalParams import CLMBGlobalParams
 from CLUMBA.moduls.utils.scene     import Scene
 from CLUMBA.moduls.utils.keys      import Key
@@ -47,7 +47,7 @@ ADDON.appendAtributes( CLMBAttribute( bpy.types, "Scene", "CLMBA_Exemple", bpy.p
 ADDON.appendAtributes( CLMBAttribute( bpy.types, "Scene", "CLMBA_ExemplePropertyGroup", bpy.props.PointerProperty( type = ExemplePropertyGroup) ) )
 #===============================================================
 
-# Handler Registrator ======================================
+# Handler Registrator ==========================================
 def handlerFunction(scene):
     scene.CLMBA_ExemplePropertyGroup.exempleInt += 1
 
@@ -60,6 +60,17 @@ def handlerFunction2(scene):
 
 ADDON.appendHandlers( CLMBHandler.Handler( CLMBHandler.HandlersTypes.FrameChanges.frameChangePost, handlerFunction) )
 ADDON.appendHandlers( CLMBHandler.Handler( CLMBHandler.HandlersTypes.Save.savePost, handlerFunction2) )
+#===============================================================
+
+# Timers Registrator ===========================================
+def in_5_seconds():
+    scene = Scene.getSceneByNumber()
+    scene.CLMBA_ExemplePropertyGroup.exempleInt += 1
+    
+    print(f"Hello World {scene.CLMBA_ExemplePropertyGroup.exempleInt}")
+    return 5.0
+
+ADDON.appendTimer(CLMBTimer( in_5_seconds ))
 #===============================================================
 
 # Addon Settings UI ============================================
